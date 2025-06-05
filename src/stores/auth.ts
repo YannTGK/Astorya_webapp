@@ -1,79 +1,68 @@
-// src/stores/auth.ts
 import { defineStore } from 'pinia'
 import api from '../lib/axios'
 
-interface User {
-  _id: string
-  email: string
-  username: string
-  // voeg extra velden toe
+type User = { id: string; name: string; email: string }
+
+interface State {
+  token: string | null
+  user:  User   | null
+  loading: boolean
 }
 
+const TOKEN_KEY = 'astorya_jwt'
+const USER_KEY  = 'astorya_user'
+
 export const useAuthStore = defineStore('auth', {
-  state: () => ({
-    token: localStorage.getItem('token') as string | null,
-    user: null as User | null,
-    loadingUser: false,
+  state: (): State => ({
+    token  : null,
+    user   : null,
+    loading: false,
   }),
 
   getters: {
-    /** `true` zodra token + user geladen is */
-    isAuthenticated: (state) => !!state.token && !!state.user,
+    isAuthenticated: (s) => !!s.token,
   },
 
   actions: {
-    /** 1) Bewaar token + zet header  */
-    setToken(token: string) {
-      this.token = token
-      localStorage.setItem('token', token)
-      api.defaults.headers.common.Authorization = `Bearer ${token}`
-    },
-
-    /** 2) Bewaar user  */
-    setUser(user: User) {
-      this.user = user
-    },
-
-    /** 3) Login: krijg token, laad user */
-    async login(email: string, password: string) {
-      const { data } = await api.post('/auth/login', { email, password })
-      this.setToken(data.token)
-      await this.fetchCurrentUser()
-    },
-
-    /** 4) User data ophalen met token  */
-    async fetchCurrentUser() {
-      if (!this.token) return
-      this.loadingUser = true
-      try {
-        const { data } = await api.get('/auth/me')
-        this.setUser(data.user)
-      } catch (err) {
-        // token ongeldig → uitloggen
-        this.logout()
-        throw err
-      } finally {
-        this.loadingUser = false
-      }
-    },
-
-    /** 5) Bij app-start token herstellen */
+    /** probeer bestaande sessie te herstellen; roept je in main.ts aan */
     async restore() {
-      if (this.token) {
-        api.defaults.headers.common.Authorization = `Bearer ${this.token}`
-        try {
-          await this.fetchCurrentUser()
-        } catch {
-          /* token verlopen → blijft uitgelogd */
-        }
+      const t = localStorage.getItem(TOKEN_KEY)
+      if (!t) return false
+
+      this.token = t
+      api.defaults.headers.common.Authorization = `Bearer ${t}`
+
+      try {
+        const { user } = (await api.get('/auth/me')).data
+        this.user = user
+        localStorage.setItem(USER_KEY, JSON.stringify(user))
+        return true
+      } catch {
+        // token ongeldig → opschonen
+        this.logout()
+        return false
       }
     },
 
-    /** 6) Logout  */
+    async login(email: string, password: string) {
+      this.loading = true
+      try {
+        const { token, user } = (await api.post('/auth/login', { email, password })).data
+        this.token = token
+        this.user  = user
+        localStorage.setItem(TOKEN_KEY, token)
+        localStorage.setItem(USER_KEY,  JSON.stringify(user))
+        api.defaults.headers.common.Authorization = `Bearer ${token}`
+      } finally {
+        this.loading = false
+      }
+    },
+
     logout() {
       this.token = null
-      this.user = null
-      localStorage.removeItem('token')
+      this.user  = null
+      localStorage.removeItem(TOKEN_KEY)
+      localStorage.removeItem(USER_KEY)
       delete api.defaults.headers.common.Authorization
     },
   },

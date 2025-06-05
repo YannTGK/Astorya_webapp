@@ -1,48 +1,50 @@
 // src/components/three/Star.ts
 import * as THREE from 'three'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+// The GLTFLoader import is removed since it is not used in the code.
 
 type Props = {
-  position: [number, number, number]
-  size: [number, number, number]
-  id: string
-  color: THREE.Color
-  emissive: THREE.Color
-  highlight: boolean
+  data: {
+    id: string
+    color: string
+    highlight: boolean
+  }
+  cloneOf: THREE.Group          // reeds ingeladen GLB-scene
 }
 
-export class Star extends THREE.Object3D {
-  constructor(p: Props) {
-    super()
-    this.position.set(...p.position)
-    this.rotation.x = -Math.PI / 2
-    this.userData = { id: p.id, color: p.color, emissive: p.emissive }
-    this.load(p.size, p.color, p.emissive, p.highlight)
+export class Star extends THREE.Group {
+  /** geometry/material clean-up */
+  dispose() {
+    this.traverse(obj => {
+      const m = (obj as THREE.Mesh).material as THREE.Material | THREE.Material[]
+      const g = (obj as THREE.Mesh).geometry as THREE.BufferGeometry
+      if (Array.isArray(m)) m.forEach(mat => mat.dispose())
+      else if (m) m.dispose()
+      g?.dispose()
+    })
   }
 
-  private load(size: [number, number, number], c: THREE.Color, e: THREE.Color, hi: boolean) {
-    const loader = new GLTFLoader()
-    loader.load(
-      'https://cdn.jsdelivr.net/gh/YannTGK/GlbFIle@main/star.glb',
-      (g) => {
-        g.scene.scale.set(...size)
-        g.scene.traverse((child) => {
-          const mesh = child as THREE.Mesh
-          if (mesh.isMesh && mesh.material) {
-            const apply = (m: THREE.MeshStandardMaterial) => {
-              m.color.copy(c)
-              m.emissive.copy(e)
-              m.emissiveIntensity = hi ? 0.3 : 0.3
-              return m
-            }
-            mesh.material = Array.isArray(mesh.material)
-              ? mesh.material.map((m) => apply(m.clone()))
-              : apply(mesh.material.clone())
-          }
-          child.userData = { ...child.userData, ...this.userData }
-        })
-        this.add(g.scene)
+  constructor(p: Props) {
+    super()
+    // gepersonaliseerde clone van de (gedeelde) GLB
+    const instance = p.cloneOf.clone(true)
+
+    const c = new THREE.Color(p.data.color)
+    instance.traverse(child => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh
+        const apply = (mat: THREE.MeshStandardMaterial) => {
+          mat.color.copy(c)
+          mat.emissive.copy(c)
+          mat.emissiveIntensity = p.data.highlight ? 1.2 : 0.3
+          return mat
+        }
+        mesh.material = Array.isArray(mesh.material)
+          ? mesh.material.map(m => apply(m.clone()))
+          : apply((mesh.material as THREE.MeshStandardMaterial).clone())
       }
-    )
+      child.userData = { id: p.data.id }
+    })
+
+    this.add(instance)
   }
 }
