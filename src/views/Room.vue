@@ -131,11 +131,11 @@
   
   /* ─── tab-definitie -------------------------------------------------- */
   const views = [
-  { key: 'Fotos',      img: fotosIcon,      pos:[12, 9,-2], target:[0,3,0] },
-  { key: 'Videos',     img: videosIcon,     pos:[14,10,-2], target:[0,3,0] },
-  { key: 'Audio',      img: audioIcon,      pos:[10,10, 7], target:[0,3,0] },
-  { key: 'Documenten', img: documentenIcon, pos:[ 7, 5,-2], target:[0,3,0] },
-  { key: 'Messages',   img: messagesIcon,   pos:[ 1.5,10,0],target:[0,3,0] },
+  { key: 'Fotos',      img: fotosIcon,     pos:[12, 9, -2], target: [1000, -9, -2]  },
+  { key: 'Videos',     img: videosIcon,    pos:[14, 10, -2], target: [1000, -1000, -2]  },
+  { key: 'Audio',      img: audioIcon,     pos:[10, 10, 7], target: [1000, -1000, 7]  },
+  { key: 'Documenten', img: documentenIcon,pos: [7, 5, -2], target: [9, 1, -4.5] },
+  { key: 'Messages',   img: messagesIcon,  pos: [1.5, 10, 0], target: [1.5, -1000, 0]  },
 ] as const
   
   const active = ref<ViewKey | ''>('')
