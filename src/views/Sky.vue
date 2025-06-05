@@ -327,7 +327,7 @@
       } catch {
         noAccessMsg.value = 'This is a dedicated star of somewone else. You can only view it in 3D if you are family or friends.'
         clearTimeout(msgTimer)
-        msgTimer = setTimeout(() => (noAccessMsg.value = ''), 3000)
+        msgTimer = setTimeout(() => (noAccessMsg.value = ''), 10000)
       }
       return
     }
