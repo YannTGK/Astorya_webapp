@@ -651,7 +651,7 @@ requestAnimationFrame(function step(){
     transition: 0.25s;
   }
   .switch input:checked + .slider {
-    background: #fedf7e;
+    background: #FEEDB6;
   }
   .switch input:checked + .slider::after {
     transform: translateX(20px);
@@ -722,7 +722,7 @@ requestAnimationFrame(function step(){
     padding: 6px 14px;
     border-radius: 20px;
     /*background: #000a;*/
-    color: #fedf7e;
+    color: #FEEDB6;
     font-size: 18px;
     font-weight: 600;
     pointer-events: none;
@@ -792,15 +792,15 @@ requestAnimationFrame(function step(){
   align-items: center;
   background: #fff;
   border-radius: 40px;
-  padding: 2px 12px 2px 40px;
+  padding: 2px 2px 2px 25px;
   box-shadow: 0 1px 8px rgba(16,20,39,0.06);
-  width: 260px;
-  height: 40px;
+  width: 200px;
+  height: 30px;
 }
 .search-icon {
   position: absolute;
-  left: 18px;
-  width: 22px;
+  left: 12px;
+  width: 18px;
   top: 50%;
   transform: translateY(-50%);
   opacity: 0.7;
@@ -820,8 +820,8 @@ requestAnimationFrame(function step(){
   border: none;
   box-shadow: none;
   position: absolute;
-  top: 22px;
-  right: 26px;
+  top: 15px;
+  right: 15px;
   padding: 0;
   cursor: pointer;
   z-index: 20;
