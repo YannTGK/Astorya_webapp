@@ -1,18 +1,16 @@
 <template>
-  <!-- HEADER / SEARCH -->
-  <header class="topbar">
-    <div class="field" v-if="!panelOpen">
-      <input
-        v-model="searchTerm"
-        class="compact-input"
-        type="text"
-        placeholder="Search…"
-        @focus="panelOpen = true"
-      />
-    </div>
- 
-    
-  </header>
+<header class="topbar">
+  <div class="field searchbar" v-if="!panelOpen">
+    <img src="@/assets/icons/search.svg" class="search-icon" />
+    <input
+      v-model="searchTerm"
+      class="compact-input"
+      type="text"
+      placeholder="Search"
+      @focus="panelOpen = true"
+    />
+  </div>
+</header>
 
   <!-- SLIDE-IN PANEL -->
   <Transition name="slide">
@@ -21,7 +19,7 @@
         <div class="field" style="flex:1">
           <input
             v-model="searchTerm"
-            class="compact-input"
+            class="compact-input starname-input"
             type="text"
             placeholder="Star name…"
             @keydown.stop
@@ -32,7 +30,9 @@
             </li>
           </ul>
         </div>
-        <button class="icon-btn" @click="togglePanel"><span>x</span></button>
+       <button class="icon-btn close-btn" @click="togglePanel">
+        <img src="@/assets/icons/close.svg" alt="Close" />
+      </button>
       </div>
       <!-- filters… -->
       <div class="horizontalRow">
@@ -47,22 +47,24 @@
           Turn this on to hide all public stars you don’t own.
         </span>
       </div>
-      <label class="label">Date of birth
-        <input v-model="dob" type="date" class="full-input" />
-      </label>
-      <label class="label">Date of death
-        <input v-model="dod" type="date" class="full-input" />
-      </label>
-      <label class="label">Country
-        <select v-model="country" class="full-input">
-          <option value="">All</option>
-          <option>Belgium</option>
-          <option>Netherlands</option>
-        </select>
-      </label>
-      <label class="label">Coordinate
-        <input v-model="coord" placeholder="X,Y,Z" class="full-input" />
-      </label>
+<label class="label">Date of birth
+  <input v-model="dob" type="date" class="full-input" placeholder="DD/MM/JJJJ" />
+</label>
+
+<label class="label">Date of death
+  <input v-model="dod" type="date" class="full-input" placeholder="DD/MM/JJJJ" />
+</label>
+
+<label class="label">Country
+  <select v-model="country" class="full-input">
+    <option value="">Belgium</option>
+    <option>Netherlands</option>
+  </select>
+</label>
+
+<label class="label">Coördinate
+  <input v-model="coord" class="full-input" placeholder="X0,Y0,Z0" />
+</label>
       <button class="filterBtn" @click="applyFilters">Filter</button>
     </aside>
   </Transition>
@@ -514,7 +516,12 @@ requestAnimationFrame(function step(){
 })
 </script>
   
-  <style scoped>
+<style scoped>
+  @import url('https://fonts.googleapis.com/css2?family=Alice&display=swap');
+
+  body {
+    font-family: 'Alice', serif;
+  }
   /* topbar */
   .topbar {
     position: fixed;
@@ -592,12 +599,14 @@ requestAnimationFrame(function step(){
     font-size: 12px;
     line-height: 1.3;
     color: #aaa;
+    margin-top: -12px;
+    margin-bottom: 8px;
   }
   .full-input,
   select {
     width: auto;
     padding: 10px 12px;
-    margin: 12px 0;
+    margin: 8px 0;
     border-radius: 6px;
     border: none;
     outline: none;
@@ -659,10 +668,11 @@ requestAnimationFrame(function step(){
     margin-top: 8px;
     border: none;
     border-radius: 6px;
-    background: #fedf7e;
+    background: #FEEDB6;
     color: #111;
     font-weight: 600;
     cursor: pointer;
+    font-family: 'Alice', serif;
   }
   
   /* canvas & HUD */
@@ -711,7 +721,7 @@ requestAnimationFrame(function step(){
     transform: translateX(-50%);
     padding: 6px 14px;
     border-radius: 20px;
-    background: #000a;
+    /*background: #000a;*/
     color: #fedf7e;
     font-size: 18px;
     font-weight: 600;
@@ -764,13 +774,89 @@ requestAnimationFrame(function step(){
   right: 24px;
   top: 24px;
   margin-left: auto;
-  padding: 6px 12px;
+  padding: 8px 14px;
   border: none;
-  border-radius: 20px;
-  background: #fedf7e;
-  color: #111;
+  border-radius: 8px;
+  text-decoration: none;
+  background-color: #FEEDB6;
+  color: #11152a;
   font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-family: 'Alice', serif;
+  font-size: 0.9rem;
 }
-  
-  </style>
+.searchbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 40px;
+  padding: 2px 12px 2px 40px;
+  box-shadow: 0 1px 8px rgba(16,20,39,0.06);
+  width: 260px;
+  height: 40px;
+}
+.search-icon {
+  position: absolute;
+  left: 18px;
+  width: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.7;
+}
+.compact-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: 'Alice', serif;
+  font-size: 1rem;
+  flex: 1;
+  padding: 0 0 0 18px;
+  color: #11152a;
+}
+.close-btn {
+  background: none;
+  border: none;
+  box-shadow: none;
+  position: absolute;
+  top: 22px;
+  right: 26px;
+  padding: 0;
+  cursor: pointer;
+  z-index: 20;
+}
+.close-btn img {
+  width: 34px;
+  height: 34px;
+  opacity: 0.85;
+}
+.panel .searchbar {
+  height: 42px;
+  width: 100%;
+  padding: 4px 16px 4px 42px;
+}
+.panel .search-icon {
+  width: 18px;
+  left: 14px;
+}
+.starname-input {
+  font-family: 'Alice', serif;
+  font-size: 0.95rem;
+  color: #fff;
+  background: #1a1f3d;
+  padding: 6px 12px 6px 14px;
+  border-radius: 20px;
+  width: 50%;
+  border: none;
+  outline: none;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.05);
+}
+
+.starname-input::placeholder {
+  color: #ccc;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+</style>
