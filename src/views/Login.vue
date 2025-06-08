@@ -1,32 +1,26 @@
-<!-- src/views/Login.vue -->
 <template>
   <div class="screen">
     <!-- Linkerhelft -->
     <div class="leftHolder">
-      <!-- 1) Logo bovenaan -->
       <img src="../assets/Logo.svg" alt="Astorya Logo" />
 
-      <!-- 2) Titel -->
       <h1 class="pageTitle">
         WelcOme back! 
         lOg in.
       </h1>
 
-      <!-- 3) Formulier -->
       <form ref="loginForm" @submit.prevent="onSubmit" class="loginForm">
-        <!-- 3a) E-mail veld -->
         <div class="field">
           <label for="email">Email</label>
           <input
             id="email"
             type="email"
             v-model="email"
-            placeholder="mariaparker@gmail.com"
+            placeholder="Elinelievens.com"
             required
           />
         </div>
 
-        <!-- 3b) Wachtwoord veld met oog-icoon -->
         <div class="field passwordField">
           <label for="password">Password</label>
           <div class="passwordWrapper">
@@ -37,7 +31,6 @@
               placeholder="••••••••••••••"
               required
             />
-            <!-- Oog-icoon (toggle zichtbaarheid) -->
             <img
               src="../assets/see.svg"
               alt="Toggle visibility"
@@ -45,24 +38,21 @@
               @click="toggleShowPassword"
             />
           </div>
-          <!-- “Forgot password?” link -->
           <a href="#" class="forgotLink">Forgot password?</a>
         </div>
 
-        <!-- 3c) Login-knop (gebruik <a> in plaats van <button>) -->
-          <a
-            href="#"
-            class="loginBtn"
-            :class="{ disabled: loading }"
-            @click.prevent="submitViaAnchor"
-          >
-            <span v-if="!loading">Log in</span>
-            <span v-else>Logging in…</span>
-          </a>
+        <a
+          href="#"
+          class="loginBtn"
+          :class="{ disabled: loading }"
+          @click.prevent="submitViaAnchor"
+        >
+          <span v-if="!loading">Log in</span>
+          <span v-else>Logging in…</span>
+        </a>
         <p v-if="errorMsg" class="error">{{ errorMsg }}</p>
       </form>
 
-      <!-- 4) “OR” separator -->
       <div class="separator">
         <span>OR</span>
       </div>
@@ -73,21 +63,21 @@
         <img src="../assets/facebook.svg" alt="Facebook" />
       </div>
 
-      <!-- 6) Footer-tekst -->
       <p class="footerText">
         Don’t have an account yet? Download the app
       </p>
     </div>
 
-    <!-- Rechterhelft (zoals jouw originele “rightHolder”) -->
-    <div class="rightHolder">
-      <h2>Write your story in the stars<br />with Astorya</h2>
-    </div>
+    <!-- Sterrenhemel rechts -->
+    <section class="rightSection">
+      <canvas ref="starsCanvas" id="starsCanvas"></canvas>
+      <h1 class="starTitle">Write your StOry <br>in the Stars with AStOrya</h1>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
@@ -98,8 +88,8 @@ const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const loginForm = ref<HTMLFormElement>()
+const starsCanvas = ref<HTMLCanvasElement | null>(null)
 
-/* UI */
 const loading  = ref(false)
 const errorMsg = ref('')
 
@@ -108,7 +98,7 @@ function submitViaAnchor() {
 }
 
 async function onSubmit() {
-  if (loading.value) return               // dubbelklik voorkomen
+  if (loading.value) return
   loading.value = true
   errorMsg.value = ''
   try {
@@ -125,6 +115,59 @@ async function onSubmit() {
 function toggleShowPassword() {
   showPassword.value = !showPassword.value
 }
+
+onMounted(() => {
+  const canvas = starsCanvas.value
+  if (!canvas) return
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+
+  let stars: any[] = []
+  const numStars = 200
+
+  const resizeCanvas = () => {
+    canvas.width = canvas.offsetWidth
+    canvas.height = canvas.offsetHeight
+    initStars()
+  }
+
+  const initStars = () => {
+    stars = []
+    for (let i = 0; i < numStars; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        radius: Math.random() * 2 + 0.5,
+        brightness: Math.random() * 0.7 + 0.3,
+        speed: Math.random() * 0.02 + 0.005,
+        direction: Math.random() > 0.5 ? 1 : -1
+      })
+    }
+  }
+
+  const drawStars = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    stars.forEach(star => {
+      star.brightness += star.speed * star.direction
+      if (star.brightness > 1) {
+        star.brightness = 1
+        star.direction = -1
+      } else if (star.brightness < 0.3) {
+        star.brightness = 0.3
+        star.direction = 1
+      }
+      ctx.beginPath()
+      ctx.arc(star.x, star.y, star.radius * star.brightness, 0, Math.PI * 2)
+      ctx.fillStyle = `rgba(255,255,255,${star.brightness})`
+      ctx.fill()
+    })
+    requestAnimationFrame(drawStars)
+  }
+
+  window.addEventListener('resize', resizeCanvas)
+  resizeCanvas()
+  drawStars()
+})
 </script>
 
 <style scoped>
@@ -344,6 +387,10 @@ html, body {
   display: none;
 }
 
+.starTitle {
+  display: none;
+}
+
 @media only screen and (min-width: 1024px) {
   .screen {
     flex-direction: row;
@@ -355,25 +402,37 @@ html, body {
     justify-content: center;
     padding: 4vh 5vw;
   }
-
-  .rightHolder {
+    .rightSection {
     display: flex;
     width: 50%;
     height: 100vh;
+    position: relative;
     background: linear-gradient(180deg, #11152A 0%, #273166 50%, #11152A 100%);
     align-items: flex-end;
     justify-content: flex-start;
-    padding: 32px;
-    background-image: url('../assets/vailStars.svg');
-    background-size: cover;
-    background-position: center;
+    overflow: hidden;
   }
 
-  .rightHolder h2 {
-    color: #ffffff;
+  #starsCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+  }
+
+  .starTitle {
+    display: block;
+    position: relative;
     font-family: 'SUNROLL', serif;
-    font-size: clamp(1.8rem, 2vw, 2.5rem);
-    line-height: 1.3;
+    font-size: clamp(2rem, 1.8vw, 2.6rem);
+    color: #ffffff;
+    text-align: left;
+    z-index: 1;
+    padding: 0 40px 40px 40px;
+    line-height: 1.6;
+    white-space: pre-line;
   }
 }
 </style>

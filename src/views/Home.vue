@@ -257,12 +257,12 @@ html, body {
     display: block;
     position: relative;
     font-family: 'SUNROLL', serif;
-    font-size: clamp(1.8rem, 1.8vw, 2.4rem);
+    font-size: clamp(2rem, 1.8vw, 2.6rem);
     color: #ffffff;
     text-align: left;
     z-index: 1;
     padding: 0 40px 40px 40px;
-    line-height: 1.4;
+    line-height: 1.6;
     white-space: pre-line;
   }
 }
