@@ -1,18 +1,16 @@
 <template>
-  <!-- HEADER / SEARCH -->
-  <header class="topbar">
-    <div class="field" v-if="!panelOpen">
-      <input
-        v-model="searchTerm"
-        class="compact-input"
-        type="text"
-        placeholder="Search…"
-        @focus="panelOpen = true"
-      />
-    </div>
- 
-    
-  </header>
+<header class="topbar">
+  <div class="field searchbar" v-if="!panelOpen">
+    <img src="@/assets/icons/search.svg" class="search-icon" />
+    <input
+      v-model="searchTerm"
+      class="compact-input"
+      type="text"
+      placeholder="Search"
+      @focus="panelOpen = true"
+    />
+  </div>
+</header>
 
   <!-- SLIDE-IN PANEL -->
   <Transition name="slide">
@@ -21,7 +19,7 @@
         <div class="field" style="flex:1">
           <input
             v-model="searchTerm"
-            class="compact-input"
+            class="compact-input starname-input"
             type="text"
             placeholder="Star name…"
             @keydown.stop
@@ -32,7 +30,9 @@
             </li>
           </ul>
         </div>
-        <button class="icon-btn" @click="togglePanel"><span>x</span></button>
+       <button class="icon-btn close-btn" @click="togglePanel">
+        <img src="@/assets/icons/close.svg" alt="Close" />
+      </button>
       </div>
       <!-- filters… -->
       <div class="horizontalRow">
@@ -47,22 +47,24 @@
           Turn this on to hide all public stars you don’t own.
         </span>
       </div>
-      <label class="label">Date of birth
-        <input v-model="dob" type="date" class="full-input" />
-      </label>
-      <label class="label">Date of death
-        <input v-model="dod" type="date" class="full-input" />
-      </label>
-      <label class="label">Country
-        <select v-model="country" class="full-input">
-          <option value="">All</option>
-          <option>Belgium</option>
-          <option>Netherlands</option>
-        </select>
-      </label>
-      <label class="label">Coordinate
-        <input v-model="coord" placeholder="X,Y,Z" class="full-input" />
-      </label>
+<label class="label">Date of birth
+  <input v-model="dob" type="date" class="full-input" placeholder="DD/MM/JJJJ" />
+</label>
+
+<label class="label">Date of death
+  <input v-model="dod" type="date" class="full-input" placeholder="DD/MM/JJJJ" />
+</label>
+
+<label class="label">Country
+  <select v-model="country" class="full-input">
+    <option value="">Belgium</option>
+    <option>Netherlands</option>
+  </select>
+</label>
+
+<label class="label">Coördinate
+  <input v-model="coord" class="full-input" placeholder="X0,Y0,Z0" />
+</label>
       <button class="filterBtn" @click="applyFilters">Filter</button>
     </aside>
   </Transition>
@@ -188,6 +190,39 @@ onMounted(() => {
   // 1) Init scene + composer
   ;({ renderer, scene, camera, composer } = initScene(canvas.value));
   document.body.appendChild(VRButton.createButton(renderer));
+
+  // ======= GALAXY GRADIENT ACHTERGROND =======
+const galaxyGeo = new THREE.SphereGeometry(2500, 64, 64);
+const galaxyMat = new THREE.ShaderMaterial({
+  uniforms: {
+    colorCenter: { value: new THREE.Color('#101427') }, // diep blauw
+    colorEdge:   { value: new THREE.Color('#000000') }, // zwart
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform vec3 colorCenter;
+    uniform vec3 colorEdge;
+    varying vec2 vUv;
+    void main() {
+      float distToCenter = distance(vUv, vec2(0.5, 0.5));
+      float verticalBlend = smoothstep(0.2, 0.8, vUv.y);
+      float radial = smoothstep(0.0, 0.8, distToCenter);
+      float blend = mix(verticalBlend, radial, 0.6);
+      vec3 color = mix(colorCenter, colorEdge, blend);
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `,
+  side: THREE.BackSide, // <--- BELANGRIJK: binnenkant van de bol tonen!
+  depthWrite: false,
+});
+const galaxySphere = new THREE.Mesh(galaxyGeo, galaxyMat);
+scene.add(galaxySphere);
 
   // 2) “World” group
   const world = new THREE.Group();
@@ -481,7 +516,12 @@ requestAnimationFrame(function step(){
 })
 </script>
   
-  <style scoped>
+<style scoped>
+  @import url('https://fonts.googleapis.com/css2?family=Alice&display=swap');
+
+  body {
+    font-family: 'Alice', serif;
+  }
   /* topbar */
   .topbar {
     position: fixed;
@@ -559,12 +599,14 @@ requestAnimationFrame(function step(){
     font-size: 12px;
     line-height: 1.3;
     color: #aaa;
+    margin-top: -12px;
+    margin-bottom: 8px;
   }
   .full-input,
   select {
     width: auto;
     padding: 10px 12px;
-    margin: 12px 0;
+    margin: 8px 0;
     border-radius: 6px;
     border: none;
     outline: none;
@@ -609,7 +651,7 @@ requestAnimationFrame(function step(){
     transition: 0.25s;
   }
   .switch input:checked + .slider {
-    background: #fedf7e;
+    background: #FEEDB6;
   }
   .switch input:checked + .slider::after {
     transform: translateX(20px);
@@ -626,10 +668,11 @@ requestAnimationFrame(function step(){
     margin-top: 8px;
     border: none;
     border-radius: 6px;
-    background: #fedf7e;
+    background: #FEEDB6;
     color: #111;
     font-weight: 600;
     cursor: pointer;
+    font-family: 'Alice', serif;
   }
   
   /* canvas & HUD */
@@ -678,8 +721,8 @@ requestAnimationFrame(function step(){
     transform: translateX(-50%);
     padding: 6px 14px;
     border-radius: 20px;
-    background: #000a;
-    color: #fedf7e;
+    /*background: #000a;*/
+    color: #FEEDB6;
     font-size: 18px;
     font-weight: 600;
     pointer-events: none;
@@ -731,13 +774,89 @@ requestAnimationFrame(function step(){
   right: 24px;
   top: 24px;
   margin-left: auto;
-  padding: 6px 12px;
+  padding: 8px 14px;
   border: none;
-  border-radius: 20px;
-  background: #fedf7e;
-  color: #111;
+  border-radius: 8px;
+  text-decoration: none;
+  background-color: #FEEDB6;
+  color: #11152a;
   font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-family: 'Alice', serif;
+  font-size: 0.9rem;
 }
-  
-  </style>
+.searchbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 40px;
+  padding: 2px 2px 2px 25px;
+  box-shadow: 0 1px 8px rgba(16,20,39,0.06);
+  width: 200px;
+  height: 30px;
+}
+.search-icon {
+  position: absolute;
+  left: 12px;
+  width: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.7;
+}
+.compact-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: 'Alice', serif;
+  font-size: 1rem;
+  flex: 1;
+  padding: 0 0 0 18px;
+  color: #11152a;
+}
+.close-btn {
+  background: none;
+  border: none;
+  box-shadow: none;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  padding: 0;
+  cursor: pointer;
+  z-index: 20;
+}
+.close-btn img {
+  width: 34px;
+  height: 34px;
+  opacity: 0.85;
+}
+.panel .searchbar {
+  height: 42px;
+  width: 100%;
+  padding: 4px 16px 4px 42px;
+}
+.panel .search-icon {
+  width: 18px;
+  left: 14px;
+}
+.starname-input {
+  font-family: 'Alice', serif;
+  font-size: 0.95rem;
+  color: #fff;
+  background: #1a1f3d;
+  padding: 6px 12px 6px 14px;
+  border-radius: 20px;
+  width: 50%;
+  border: none;
+  outline: none;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.05);
+}
+
+.starname-input::placeholder {
+  color: #ccc;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+</style>

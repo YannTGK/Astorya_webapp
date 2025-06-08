@@ -293,7 +293,7 @@ html, body {
 .loginBtn {
   display: block;
   width: 100%;
-  background-color: #feedb6;
+  background-color: #FEEDB6;
   color: #11152a;
   text-align: center;
   padding: 0.8rem 0;
@@ -307,7 +307,8 @@ html, body {
 }
 
 .loginBtn:hover {
-  background-color: #fddf84;
+  opacity: 0.9;
+  cursor: pointer;
 }
 
 .loginBtn.disabled {
