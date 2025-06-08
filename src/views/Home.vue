@@ -1,8 +1,9 @@
 <!-- src/views/Home.vue -->
 <template>
   <div class="screen">
+    <!-- linkerkant: altijd zichtbaar -->
     <div class="leftHolder">
-      <img src="../assets/Logo.svg" alt="Astorya Logo" class="logo-img"/>
+      <img src="../assets/Logo.svg" alt="Astorya Logo" class="logo-img" />
       <div class="pAndB">
         <h1 class="logo">Welcome to the VR-space!</h1>
         <p class="leftText">
@@ -19,22 +20,76 @@
       </div>
     </div>
 
-    <div class="rightHolder">
-      <h2>Write your story in the stars with Astorya</h2>
-    </div>
+    <!-- rechterkant: alleen desktop -->
+    <section class="section rightSection">
+      <!-- animated stars -->
+      <canvas id="starsCanvas" ref="starsCanvas"></canvas>
+      <!-- static overlay + gradient zit in CSS -->
+      <h1 class="starTitle">Write your StOry in the Stars with AStOrya</h1>
+    </section>
   </div>
 </template>
 
 <script>
 export default {
   name: 'Home',
+  mounted() {
+    const canvas = this.$refs.starsCanvas;
+    const ctx = canvas.getContext('2d');
+
+    // resize + (re)initaliseren
+    let stars = [];
+    const numStars = 200;
+
+    function initStars() {
+      stars = [];
+      for (let i = 0; i < numStars; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 2 + 0.5,
+          brightness: Math.random() * 0.7 + 0.3,
+          speed: Math.random() * 0.02 + 0.005,
+          direction: Math.random() > 0.5 ? 1 : -1
+        });
+      }
+    }
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      initStars();
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // tekenloop
+    function drawStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      stars.forEach(star => {
+        star.brightness += star.speed * star.direction;
+        if (star.brightness > 1) {
+          star.brightness = 1;
+          star.direction = -1;
+        } else if (star.brightness < 0.3) {
+          star.brightness = 0.3;
+          star.direction = 1;
+        }
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.radius * star.brightness, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${star.brightness})`;
+        ctx.fill();
+      });
+      requestAnimationFrame(drawStars);
+    }
+    drawStars();
+  }
 };
 </script>
 
 <style scoped>
 /* 1) Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Alice&display=swap');
-
 @font-face {
   font-family: 'SUNROLL';
   src: url('@/fonts/SUNROLL.TTF') format('truetype');
@@ -47,11 +102,10 @@ export default {
   box-sizing: border-box;
 }
 
-/* 3) Mobile-first layout */
+/* 3) Mobile-first */
 .screen {
   display: flex;
   flex-direction: column;
-  align-items: center;
   width: 100%;
   min-height: 100vh;
 }
@@ -123,12 +177,7 @@ export default {
   color: #ffffff;
 }
 
-/* rightHolder is hidden on mobile */
-.rightHolder {
-  display: none;
-}
-
-/* 4) Tablet breakpoint */
+/* 4) Tablet */
 @media only screen and (min-width: 778px) {
   .leftHolder {
     padding: 48px 64px;
@@ -139,20 +188,13 @@ export default {
   .leftText {
     font-size: 1.125rem;
   }
-  .buttons {
-    flex-direction: row;
-    justify-content: center;
-  }
-  .loginBtn,
-  .guestBtn {
-    width: auto;
-    flex: 1;
-    margin: 0 8px;
-    padding: 16px 0;
-  }
 }
 
-/* 5) Desktop breakpoint */
+/* 5) Desktop: split, buttons onder elkaar, sterrenpaneel oproepen */
+.rightSection {
+  display: none;
+}
+
 @media only screen and (min-width: 2024px) {
   .screen {
     flex-direction: row;
@@ -161,42 +203,53 @@ export default {
     width: 50%;
     align-items: flex-start;
     padding: 64px 80px;
-  }
-  .pAndB {
     gap: 80px;
   }
   .logo {
-    text-align: left;
     font-size: 3rem;
+    text-align: left;
   }
   .leftText {
     font-size: 1.25rem;
   }
+  /* buttons blijven kolom */
   .buttons {
-    justify-content: flex-start;
+    width: 100%;
+    max-width: 400px;
+    gap: 24px;
   }
   .loginBtn,
   .guestBtn {
-    margin: 0 20px 0 0;
-    flex: 0 0 auto;
+    width: 100%;
   }
 
-  .rightHolder {
+  /* rechtersectie */
+  .rightSection {
     display: flex;
     width: 50%;
-    justify-content: flex-end;
-    align-items: flex-end;
-
-    /* gradient + star-overlay */
-    background: var(--gradient-color) url("../assets/vailStars.svg")
-      center/cover no-repeat;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    /* gradient + static overlay */
+    background: var(--gradient-color)
+      url('../assets/Overlay-stars.png') no-repeat center center/cover;
   }
-  .rightHolder h2 {
+  /* canvas achter de titel */
+  #starsCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+  }
+  .starTitle {
     font-family: 'SUNROLL', serif;
-    font-size: 60px;
+    font-size: 4rem;
     color: #ffffff;
-    padding: 80px;
-    text-align: right;
+    text-align: center;
+    padding: 0 40px;
     line-height: 1.1;
   }
 }
