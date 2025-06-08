@@ -222,13 +222,26 @@ onMounted(() => {
   }
 
   // 4) Background points in world
-  const pts = new Float32Array(1000 * 3).map(() => (Math.random() - 0.5) * 2000)
-  world.add(
-    new THREE.Points(
-      new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(pts, 3)),
-      new THREE.PointsMaterial({ color: 0xffffff, size: 1.5, opacity: 0.8 })
-    )
-  )
+  // 4) Achtergrond-sterren als kleine sphere-meshes i.p.v. Points
+    const starCount = 1000;
+    // 4a) Maak één bol-geometry en één materiaal
+    const starGeo = new THREE.SphereGeometry(0.5, 8, 8);
+    const starMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    // 4b) InstancedMesh aanmaken
+    const starsInst = new THREE.InstancedMesh(starGeo, starMat, starCount);
+    // 4c) Dummy-object om matrices in te vullen
+    const dummy = new THREE.Object3D();
+    for (let i = 0; i < starCount; i++) {
+      dummy.position.set(
+        (Math.random() - 0.5) * 2000,
+        (Math.random() - 0.5) * 2000,
+        (Math.random() - 0.5) * 2000
+      );
+      dummy.updateMatrix();
+      starsInst.setMatrixAt(i, dummy.matrix);
+    }
+    // 4d) Voeg toe aan je “world” group
+    world.add(starsInst);
 
   // 5) Stars in world
   starMgr = useStarsManager(world, [])
