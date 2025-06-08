@@ -1,31 +1,30 @@
-<!-- src/views/Home.vue -->
 <template>
   <div class="screen">
-    <!-- linkerkant: altijd zichtbaar -->
-    <div class="leftHolder">
-      <img src="../assets/Logo.svg" alt="Astorya Logo" class="logo-img" />
-      <div class="pAndB">
-        <h1 class="logo">Welcome to the VR-space!</h1>
-        <p class="leftText">
-          Our webapp offers an immersive VR experience directly through your browser.
-          By entering the VR mode, you can explore the virtual environment in 360°,
-          interact with stars, and experience the memories in a more engaging way.
-          <br /><br />
-          Don’t have a VR headset? You can still explore in 3D using the joystick.
-        </p>
-        <div class="buttons">
-          <router-link to="/login" class="loginBtn">Log in</router-link>
-          <router-link to="/guest" class="guestBtn">Continue as guest</router-link>
+    <!-- Linkerkant: content -->
+    <div class="leftScrollArea">
+      <div class="leftHolder">
+        <img src="../assets/Logo.svg" alt="Astorya Logo" class="logo-img" />
+        <div class="pAndB">
+          <h1 class="logo">Welcome to the VR-space!</h1>
+          <p class="leftText">
+            Our webapp offers an immersive VR experience directly through your browser.
+            By entering the VR mode, you can explore the virtual environment in 360°,
+            interact with stars, and experience the memories in a more engaging way.
+            <br /><br />
+            Don’t have a VR headset? You can still explore in 3D using the joystick.
+          </p>
+          <div class="buttons">
+            <router-link to="/login" class="loginBtn">Log in</router-link>
+            <router-link to="/guest" class="guestBtn">Continue as guest</router-link>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- rechterkant: alleen desktop -->
-    <section class="section rightSection">
-      <!-- animated stars -->
-      <canvas id="starsCanvas" ref="starsCanvas"></canvas>
-      <!-- static overlay + gradient zit in CSS -->
-      <h1 class="starTitle">Write your StOry in the Stars with AStOrya</h1>
+    <!-- Rechterkant: sterrenhemel met quote -->
+    <section class="rightSection">
+      <canvas ref="starsCanvas" id="starsCanvas"></canvas>
+      <h1 class="starTitle">Write your story<br>in the stars with Astorya</h1>
     </section>
   </div>
 </template>
@@ -36,12 +35,16 @@ export default {
   mounted() {
     const canvas = this.$refs.starsCanvas;
     const ctx = canvas.getContext('2d');
-
-    // resize + (re)initaliseren
     let stars = [];
     const numStars = 200;
 
-    function initStars() {
+    const resizeCanvas = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      initStars();
+    };
+
+    const initStars = () => {
       stars = [];
       for (let i = 0; i < numStars; i++) {
         stars.push({
@@ -53,18 +56,9 @@ export default {
           direction: Math.random() > 0.5 ? 1 : -1
         });
       }
-    }
+    };
 
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      initStars();
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    // tekenloop
-    function drawStars() {
+    const drawStars = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       stars.forEach(star => {
         star.brightness += star.speed * star.direction;
@@ -81,43 +75,62 @@ export default {
         ctx.fill();
       });
       requestAnimationFrame(drawStars);
-    }
+    };
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
     drawStars();
   }
 };
 </script>
 
 <style scoped>
-/* 1) Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Alice&display=swap');
+
 @font-face {
   font-family: 'SUNROLL';
   src: url('@/fonts/SUNROLL.TTF') format('truetype');
 }
 
-/* 2) Reset & base */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* BASIC RESET */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* 3) Mobile-first */
+/* STRUCTURE */
 .screen {
   display: flex;
   flex-direction: column;
   width: 100%;
   min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* LEFT SIDE */
+.leftScrollArea {
+  width: 100%;
+  background: #fff;
 }
 
 .leftHolder {
-  width: 100%;
-  background: #ffffff;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   padding: 32px 16px;
   gap: 32px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
 .logo-img {
@@ -165,6 +178,7 @@ export default {
   font-family: 'Alice', serif;
   font-weight: bold;
   text-align: center;
+  font-size: 1.25rem;
 }
 
 .loginBtn {
@@ -177,80 +191,111 @@ export default {
   color: #ffffff;
 }
 
-/* 4) Tablet */
+.starTitle {
+  display: none;
+}
+
+/* TABLET */
 @media only screen and (min-width: 778px) {
   .leftHolder {
     padding: 48px 64px;
   }
+
   .logo {
     font-size: 2.5rem;
   }
+
   .leftText {
     font-size: 1.125rem;
   }
 }
 
-/* 5) Desktop: split, buttons onder elkaar, sterrenpaneel oproepen */
-.rightSection {
-  display: none;
-}
-
-@media only screen and (min-width: 2024px) {
+/* DESKTOP */
+@media only screen and (min-width: 1024px) {
   .screen {
     flex-direction: row;
-  }
-  .leftHolder {
-    width: 50%;
-    align-items: flex-start;
-    padding: 64px 80px;
-    gap: 80px;
-  }
-  .logo {
-    font-size: 3rem;
-    text-align: left;
-  }
-  .leftText {
-    font-size: 1.25rem;
-  }
-  /* buttons blijven kolom */
-  .buttons {
-    width: 100%;
-    max-width: 400px;
-    gap: 24px;
-  }
-  .loginBtn,
-  .guestBtn {
-    width: 100%;
+    height: 100vh;
+    overflow: hidden;
   }
 
-  /* rechtersectie */
+  .leftScrollArea {
+    width: 50%;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    justify-content: center;
+  }
+
+  .leftHolder {
+    justify-content: center;
+    align-items: center;
+    height: auto;
+    max-width: 480px;
+    margin: auto;
+    padding: 64px 40px;
+  }
+
   .rightSection {
     display: flex;
     width: 50%;
+    height: 100vh;
     position: relative;
-    align-items: center;
-    justify-content: center;
+    background: linear-gradient(180deg, #11152A 0%, #273166 50%, #11152A 100%);
+    align-items: flex-end;
+    justify-content: flex-start;
     overflow: hidden;
-    /* gradient + static overlay */
-    background: var(--gradient-color)
-      url('../assets/Overlay-stars.png') no-repeat center center/cover;
   }
-  /* canvas achter de titel */
+
   #starsCanvas {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: -1;
+    z-index: 0;
   }
+
   .starTitle {
+    display: block;
+    position: relative;
     font-family: 'SUNROLL', serif;
-    font-size: 4rem;
+    font-size: 2rem;
     color: #ffffff;
-    text-align: center;
-    padding: 0 40px;
-    line-height: 1.1;
+    text-align: left;
+    z-index: 1;
+    padding: 0 40px 40px 40px;
+    line-height: 1.4;
+    white-space: pre-line;
+  }
+}
+
+/* MOBILE/TABLET FIXES */
+@media only screen and (max-width: 1023px) {
+  .screen {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .leftScrollArea {
+    width: 100%;
+    background: #fff;
+  }
+
+  .leftHolder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 32px 16px;
+    gap: 24px;
   }
 }
 </style>
