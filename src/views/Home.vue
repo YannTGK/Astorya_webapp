@@ -93,13 +93,14 @@ export default {
 }
 
 html, body {
-  max-width: 100vw;
-  overflow-x: hidden;
   margin: 0;
   padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 
-/* BASIC RESET */
+/* RESET */
 * {
   margin: 0;
   padding: 0;
@@ -111,60 +112,66 @@ html, body {
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-height: 100vh;
-  overflow-x: hidden;
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* LEFT SIDE */
 .leftScrollArea {
   width: 100%;
   background: #fff;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .leftHolder {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  padding: 32px 16px;
-  gap: 32px;
+  justify-content: space-between;
+  height: 90vh;
   width: 100%;
   max-width: 480px;
-  margin: 0 auto;
+  padding: 3vh 5vw;
 }
 
 .logo-img {
   max-width: 120px;
+  height: auto;
 }
 
 .pAndB {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 1.5vh;
   width: 100%;
-  max-width: 480px;
 }
 
 .logo {
   font-family: 'SUNROLL', serif;
-  font-size: 1.75rem;
+  font-size: clamp(1.6rem, 2.5vw, 2.2rem);
   color: #11152A;
   text-align: left;
 }
 
 .leftText {
   font-family: 'Alice', serif;
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 1.1vw, 1.1rem);
   color: #11152A;
   opacity: 0.8;
   text-align: justify;
-  line-height: 1.5;
+  line-height: 1.4;
+  max-height: 30vh;
+  overflow: hidden;
+  margin-bottom: 12px;
 }
 
 .buttons {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1rem;
   width: 100%;
 }
 
@@ -172,13 +179,14 @@ html, body {
 .guestBtn {
   display: block;
   width: 100%;
-  padding: 14px 0;
-  border-radius: 6px;
+  padding: 0.9rem 0;
+  border-radius: 8px;
   text-decoration: none;
   font-family: 'Alice', serif;
   font-weight: bold;
   text-align: center;
-  font-size: 1.25rem;
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .loginBtn {
@@ -191,6 +199,12 @@ html, body {
   color: #ffffff;
 }
 
+.loginBtn:hover,
+.guestBtn:hover {
+  opacity: 0.9;
+  cursor: pointer;
+}
+
 .starTitle {
   display: none;
 }
@@ -198,15 +212,7 @@ html, body {
 /* TABLET */
 @media only screen and (min-width: 778px) {
   .leftHolder {
-    padding: 48px 64px;
-  }
-
-  .logo {
-    font-size: 2.5rem;
-  }
-
-  .leftText {
-    font-size: 1.125rem;
+    max-width: 600px;
   }
 }
 
@@ -214,26 +220,11 @@ html, body {
 @media only screen and (min-width: 1024px) {
   .screen {
     flex-direction: row;
-    height: 100vh;
-    overflow: hidden;
   }
 
   .leftScrollArea {
     width: 50%;
     height: 100vh;
-    overflow-y: auto;
-    overflow-x: hidden;
-    display: flex;
-    justify-content: center;
-  }
-
-  .leftHolder {
-    justify-content: center;
-    align-items: center;
-    height: auto;
-    max-width: 480px;
-    margin: auto;
-    padding: 64px 40px;
   }
 
   .rightSection {
@@ -260,42 +251,13 @@ html, body {
     display: block;
     position: relative;
     font-family: 'SUNROLL', serif;
-    font-size: 2rem;
+    font-size: clamp(2.2rem, 2vw, 2.9rem);
     color: #ffffff;
     text-align: left;
     z-index: 1;
     padding: 0 40px 40px 40px;
     line-height: 1.4;
     white-space: pre-line;
-  }
-}
-
-/* MOBILE/TABLET FIXES */
-@media only screen and (max-width: 1023px) {
-  .screen {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    min-height: 100vh;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-
-  .leftScrollArea {
-    width: 100%;
-    background: #fff;
-  }
-
-  .leftHolder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    width: 100%;
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 32px 16px;
-    gap: 24px;
   }
 }
 </style>
