@@ -71,7 +71,8 @@
     class="sky-canvas"
     @pointerdown="startLook"
     @pointermove="lookAround"
-    @pointerleave="stopLook"
+    @pointerup="stopLook"
+     @pointercancel="stopLook"
   />
 
   <!-- OVERLAYS -->
@@ -94,8 +95,6 @@ import * as THREE from 'three'
 import { gsap } from 'gsap'
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js'
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js'
-import { XRHandModelFactory } from 'three/examples/jsm/webxr/XRHandModelFactory.js'
-import { CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer.js'
 import { initScene } from '../components/three/initScene'
 import { useStarsManager } from '../components/three/StarsManager'
 import { useStars } from '../composables/useStars'
@@ -157,7 +156,7 @@ const DEFAULT_POS = new THREE.Vector3(0,0,10)
 const camPos = ref(DEFAULT_POS.clone())
 const camRot = ref({ x:0, y:0 })
 const FOCUS = 20
-const SPEED = 0.1 // thumbstick speed
+const SPEED = 10 // thumbstick speed
 
 const canvas = ref<HTMLCanvasElement>()
 let renderer: THREE.WebGLRenderer,
@@ -172,73 +171,109 @@ const mouse     = new THREE.Vector2()
 onMounted(() => {
   if (!canvas.value) return
 
-  // init scene + bloom composer
+  // 1) Init scene + composer
   ;({ renderer, scene, camera, composer } = initScene(canvas.value))
-
-  // VR button
   document.body.appendChild(VRButton.createButton(renderer))
 
-  // controllers & hand models
-  const ctrlFactory = new XRControllerModelFactory()
-  const handFactory = new XRHandModelFactory()
+  // 2) Create a “world” group for stars & points
+  const world = new THREE.Group()
+  scene.add(world)
 
-  // two controllers
+  // 3) Controllers + laser + spotlight (stay parented to scene)
+  const ctrlFactory = new XRControllerModelFactory()
   for (let i = 0; i < 2; i++) {
+    const ctrl = renderer.xr.getController(i)
+    scene.add(ctrl)
     const grip = renderer.xr.getControllerGrip(i)
     grip.add(ctrlFactory.createControllerModel(grip))
     scene.add(grip)
 
-    const hand = renderer.xr.getHand(i)
-    hand.add(handFactory.createHandModel(hand, 'mesh'))
-    scene.add(hand)
+    // Laser line
+    const laser = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, 0, -1),
+      ]),
+      new THREE.LineBasicMaterial({ color: 0xffffff })
+    )
+    laser.scale.set(1, 1, 10)
+    ctrl.add(laser)
+
+    // Spotlight
+    const spot = new THREE.SpotLight(0xffffff, 1, 15, Math.PI * 0.1, 0.5)
+    spot.position.set(0, 0, 0)
+    spot.target.position.set(0, 0, -1)
+    ctrl.add(spot)
+    ctrl.add(spot.target)
   }
 
-  // add some random points
-  const pts = new Float32Array(1000*3).map(() => (Math.random()-0.5)*2000)
-  scene.add(new THREE.Points(
-    new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(pts,3)),
-    new THREE.PointsMaterial({ color:0xffffff, size:1.5, opacity:0.8 })
-  ))
+  // 4) Background points in world
+  const pts = new Float32Array(1000 * 3).map(() => (Math.random() - 0.5) * 2000)
+  world.add(
+    new THREE.Points(
+      new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(pts, 3)),
+      new THREE.PointsMaterial({ color: 0xffffff, size: 1.5, opacity: 0.8 })
+    )
+  )
 
-  // stars manager
-  starMgr = useStarsManager(scene, [])
+  // 5) Stars in world
+  starMgr = useStarsManager(world, [])
   watch(filteredStars, s => starMgr.update(s), { immediate: true })
 
-  // render loop
-  renderer.setAnimationLoop((time) => {
-    // update camera
+  // 6) Render-loop: left stick → move/strafe, right stick → turn
+  const ROTATE_SPEED = 0.03
+  renderer.setAnimationLoop(() => {
+    // a) baseline camera pose (for desktop fallback)
     camera.position.copy(camPos.value)
     camera.rotation.set(camRot.value.x, camRot.value.y, 0)
+    const forward = new THREE.Vector3(0, 0, -1).applyEuler(camera.rotation)
+    const right   = new THREE.Vector3(1, 0,  0).applyEuler(camera.rotation)
 
-    // thumbstick movement (right hand)
+    // b) read both controllers
+    let dz = 0, dx = 0, turn = 0
     const session = renderer.xr.getSession()
     if (session) {
       for (const src of session.inputSources) {
-        if (src.gamepad && src.handedness === 'right') {
-          const [xAxis, yAxis] = src.gamepad.axes
-          if (Math.abs(yAxis) > 0.2) {
-            // forward/back
-            const dir = new THREE.Vector3(0,0, -yAxis * SPEED).applyEuler(camera.rotation)
-            camPos.value.add(dir)
-          }
-          if (Math.abs(xAxis) > 0.2) {
-            // strafe
-            const dir = new THREE.Vector3(xAxis * SPEED,0,0).applyEuler(camera.rotation)
-            camPos.value.add(dir)
-          }
+        if (!src.gamepad) continue
+        const axes = src.gamepad.axes
+        // choose the primary stick axes—if you get 4 values, use [2,3], else [0,1]
+        const x = axes.length >= 4 ? axes[2] : axes[0]
+        const y = axes.length >= 4 ? axes[3] : axes[1]
+
+        if (src.handedness === 'left') {
+          if (Math.abs(y) > 0.2) dz   = -y * SPEED   // forward/back
+          if (Math.abs(x) > 0.2) dx   = -x * SPEED   // strafe
+        } else if (src.handedness === 'right') {
+          if (Math.abs(x) > 0.2) turn =  x * ROTATE_SPEED
         }
+      }
+    } else {
+      // desktop fallback: first gamepad
+      const gp = navigator.getGamepads?.()[0]
+      if (gp) {
+        const axes = gp.axes
+        const x = axes.length >= 4 ? axes[2] : axes[0]
+        const y = axes.length >= 4 ? axes[3] : axes[1]
+        if (Math.abs(y) > 0.2) dz   = -y * SPEED
+        if (Math.abs(x) > 0.2) dx   = -x * SPEED
+        if (Math.abs(axes[0]) > 0.2) turn = axes[0] * ROTATE_SPEED
       }
     }
 
+    // c) apply movement
     if (renderer.xr.isPresenting) {
-      console.log('VR frame', time)
+      world.position.addScaledVector(forward, dz)
+      world.position.addScaledVector(right,   dx)
+      world.rotation.y -= turn
       renderer.render(scene, camera)
     } else {
+      camPos.value.addScaledVector(forward, dz)
+      camPos.value.addScaledVector(right,   dx)
+      camRot.value.y -= turn
       composer.render()
     }
   })
 })
-
 onUnmounted(() => {
   renderer.setAnimationLoop(null)
   starMgr.detach()
@@ -277,30 +312,59 @@ let px=0, py=0, startX=0, startY=0
 const THRESH = 8
 
 function startLook(e: PointerEvent) {
-  if (!canControl() || e.button!==0) return
-  dragging.value = true; rotating.value = false
-  startX=px=e.clientX; startY=py=e.clientY
-  (e.target as HTMLElement).setPointerCapture(e.pointerId)
+  if (!canControl() || e.button !== 0) return
+
+  dragging.value = true
+  rotating.value = false
+
+  startX = px = e.clientY
+  startX = px = e.clientX
+  startY = py = e.clientY
+  startY = py = e.clientY
+
+;(e.target as HTMLElement).setPointerCapture(e.pointerId)
 }
+
+
 function lookAround(e: PointerEvent) {
-  if (!dragging.value||!canControl()) return
-  if ((e.buttons&1)===0) { stopLook(e); return }
-  const dx=e.clientX-px, dy=e.clientY-py
-  px=e.clientX; py=e.clientY
-  if (!rotating.value && Math.hypot(e.clientX-startX,e.clientY-startY)>THRESH)
+  // guard: alleen als we slepen én juiste event
+  if (!dragging.value || !canControl() || typeof e.clientX !== 'number') return
+
+  // als muisknop losgelaten, beëindig
+  if ((e.buttons & 1) === 0) {
+    stopLook(e)
+    return
+  }
+
+  const dx = e.clientX - px
+  const dy = e.clientY - py
+  px = e.clientX
+  py = e.clientY
+
+  if (!rotating.value && Math.hypot(e.clientX - startX, e.clientY - startY) > THRESH) {
     rotating.value = true
+  }
   if (rotating.value) {
-    const sp=0.002
-    camRot.value.y -= dx*sp
-    camRot.value.x = Math.max(-Math.PI/2+0.05,Math.min(Math.PI/2-0.05,camRot.value.x-dy*sp))
+    const sp = 0.002
+    camRot.value.y -= dx * sp
+    camRot.value.x = Math.max(-Math.PI/2+0.05,
+      Math.min(Math.PI/2-0.05, camRot.value.x - dy*sp))
   }
 }
+
 function stopLook(e: PointerEvent) {
-  if (!dragging.value) return
-  if (!rotating.value) handleClick(e)
-  dragging.value = false; rotating.value = false
-  (e.target as HTMLElement).releasePointerCapture(e.pointerId)
+  // guard: event moet bestaan en pointerId geldig
+  if (!e || typeof e.pointerId !== 'number') return
+
+  // alleen ontgrendelen als we aan het slepen waren
+  if (dragging.value && canControl()) {
+    if (!rotating.value) handleClick(e)
+    dragging.value = false
+    rotating.value = false
+    ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
+  }
 }
+
 async function handleClick(e: PointerEvent) {
   if (!canvas.value) return
   const r = canvas.value.getBoundingClientRect()
@@ -342,11 +406,11 @@ function onKey(e: KeyboardEvent) {
 window.addEventListener('keydown', onKey)
 window.addEventListener('keyup', onKey)
 requestAnimationFrame(function step(){
-  const fwd   = new THREE.Vector3(0,0,-1).applyEuler(camera.rotation)
-  const right = new THREE.Vector3(1,0, 0).applyEuler(camera.rotation)
+  const fwd    = new THREE.Vector3(0,0,-1).applyEuler(camera.rotation)
+  const strafe = new THREE.Vector3(1,0, 0).applyEuler(camera.rotation)
   if (canControl()) {
-    camPos.value.addScaledVector(fwd,   (mv.f-mv.b)*0.05)
-    camPos.value.addScaledVector(right, (mv.r-mv.l)*0.05)
+    camPos.value.addScaledVector(fwd,    (mv.f - mv.b) * SPEED)
+    camPos.value.addScaledVector(strafe, (mv.r - mv.l) * SPEED)
   }
   requestAnimationFrame(step)
 })

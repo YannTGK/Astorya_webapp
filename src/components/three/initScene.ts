@@ -20,7 +20,18 @@ export function initScene(canvas: HTMLCanvasElement) {
   const scene = new THREE.Scene()
   scene.background = new THREE.Color(0x000000)
   scene.fog = new THREE.Fog(0x000000, 200, 1200)
+  
+   // ── voeg dit toe ──
+  // Basis omgevingslicht, zodat alle objecten minimaal een beetje verlicht zijn
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+  scene.add(ambientLight)
 
+  // Richtingslicht voor diepte en schaduwwerking (bijv. controllers)
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 1)
+  directionalLight.position.set(10, 10, 10)  // vanaf boven/rechts
+  scene.add(directionalLight)
+  // ───────────────────
+  
   // Camera
   const camera = new THREE.PerspectiveCamera(
     75,
