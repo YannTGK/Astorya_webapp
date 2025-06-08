@@ -8,8 +8,8 @@
 
       <!-- 2) Titel -->
       <h1 class="pageTitle">
-        Welcome back!<br />
-        Log in.
+        WelcOme back! 
+        lOg in.
       </h1>
 
       <!-- 3) Formulier -->
@@ -67,6 +67,12 @@
         <span>OR</span>
       </div>
 
+      <div class="socialButtons">
+        <img src="../assets/itsme.svg" alt="ItsMe" />
+        <img src="../assets/google.svg" alt="Google" />
+        <img src="../assets/facebook.svg" alt="Facebook" />
+      </div>
+
       <!-- 6) Footer-tekst -->
       <p class="footerText">
         Don’t have an account yet? Download the app
@@ -122,154 +128,158 @@ function toggleShowPassword() {
 </script>
 
 <style scoped>
-/* 1) Global reset binnen dit component */
+@import url('https://fonts.googleapis.com/css2?family=Alice&display=swap');
+
+@font-face {
+  font-family: 'SUNROLL';
+  src: url('@/fonts/SUNROLL.TTF') format('truetype');
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: 'Alice', serif;
+  font-size: 0.9rem;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* 2) Hoofdcontainer */
 .screen {
   display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100vh;
   overflow: hidden;
-  font-family: 'Segoe UI', sans-serif;
 }
 
-/* 3) Linkerhelft (login) */
 .leftHolder {
-  width: 50%;
-  padding: 64px 80px;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #ffffff;
-  gap: 32px;
-  overflow-y: auto;
+  justify-content: space-between;
+  padding: 3vh 4vw;
+  background-color: #fff;
+  width: 100%;
 }
 
-/* 3.1) Logo */
-.logoImg {
-  width: 140px;
+.leftHolder img {
+  max-width: 80px;
   height: auto;
-  margin-bottom: 16px;
+  margin-top: 1vh;
 }
 
-/* 3.2) Pagina-titel */
 .pageTitle {
-  font-size: 32px;
-  font-weight: 600;
-  color: #11152a;
-  text-align: center;
-  line-height: 1.2;
+  font-family: 'SUNROLL', serif;
+  font-size: clamp(1.2rem, 2vw, 1.8rem);
+  color: #11152A;
+  text-align: left;
+  margin: 3vh auto 2vh;
+  line-height: 1.3;
+  width: 100%;
+  max-width: 360px;
 }
 
-/* 3.3) Formulier */
 .loginForm {
   width: 100%;
+  max-width: 360px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 0.8rem;
 }
 
-/* 3.3a) Algemene styling voor inputvelden */
 .field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: 100%;
+  gap: 0.3rem;
 }
 
 .field label {
-  font-size: 14px;
+  font-size: 0.8rem;
   font-weight: 500;
-  color: #333;
 }
 
 .field input {
-  padding: 12px 16px;
+  padding: 0.55rem 0.8rem;
+  font-size: 0.9rem;
   border: 1px solid #ccc;
   border-radius: 6px;
-  font-size: 16px;
-  color: #11152a;
   outline: none;
-  transition: border-color 0.2s ease;
+  font-family: 'Alice', serif;
 }
 
-.field input:focus {
-  border-color: #888;
-}
-
-/* 3.3b) Wachtwoord-veld met oog-icoon */
-.passwordField .passwordWrapper {
+.passwordWrapper {
   position: relative;
-  width: 100%;
 }
 
 .passwordWrapper input {
   width: 100%;
-  padding-right: 40px; /* ruimte voor oog-icoon */
+  padding-right: 32px;
 }
 
 .toggleIcon {
   position: absolute;
-  right: 12px;
-  top: 50%;
-  width: 20px;
-  height: 20px;
+  right: 10px;
+  top: 36%;
+  width: 18px;
+  height: 18px;
   transform: translateY(-50%);
   cursor: pointer;
   opacity: 0.7;
-  transition: opacity 0.2s ease;
 }
 
 .toggleIcon:hover {
   opacity: 1;
 }
 
-/* “Forgot password?” link */
 .forgotLink {
-  font-size: 14px;
-  color: #555;
+  font-size: 0.7rem;
+  text-align: right;
   text-decoration: none;
-  margin-top: 4px;
-  align-self: flex-end;
-  transition: color 0.2s ease;
+  color: #555;
+  margin-top: 3px;
 }
 
-.forgotLink:hover {
-  color: #11152a;
-}
-
-/* 3.3c) Login-knop als <a> */
 .loginBtn {
   display: block;
   width: 100%;
   background-color: #feedb6;
   color: #11152a;
   text-align: center;
-  padding: 14px 0;
-  font-size: 16px;
-  font-weight: 600;
+  padding: 0.8rem 0;
+  font-size: 0.9rem;
+  font-weight: bold;
   border-radius: 8px;
   text-decoration: none;
-  transition: background-color 0.3s ease;
   cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-family: 'Alice', serif;
 }
 
 .loginBtn:hover {
   background-color: #fddf84;
 }
 
-/* 4) Separator “OR” */
+.loginBtn.disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
 .separator {
   width: 100%;
+  max-width: 360px;
   text-align: center;
-  margin-top: 8px;
-  margin-bottom: 8px;
+  margin: 1.5rem 0 1.2rem;
   position: relative;
+  font-size: 0.75rem;
+  color: #777;
 }
 
 .separator::before,
@@ -277,7 +287,7 @@ function toggleShowPassword() {
   content: '';
   position: absolute;
   top: 50%;
-  width: 40%;
+  width: 45%;
   height: 1px;
   background-color: #ccc;
 }
@@ -291,71 +301,79 @@ function toggleShowPassword() {
 }
 
 .separator span {
-  display: inline-block;
-  padding: 0 12px;
-  font-size: 14px;
-  color: #777;
   background-color: #fff;
+  padding: 0 0.8rem;
+  font-size: 0.75rem;
 }
 
-/* 5) Social login knoppen */
 .socialButtons {
   display: flex;
+  gap: 1rem;
   justify-content: center;
-  gap: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
 
-.socialBtn img {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
+.socialButtons img {
+  width: 40px;
+  height: 40px;
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
 }
 
-.socialBtn img:hover {
-  opacity: 0.8;
+.socialButtons img:hover {
+  transform: scale(1.05);
 }
 
-/* 6) Footertekst */
 .footerText {
-  font-size: 14px;
+  font-size: 0.75rem;
   color: #555;
+  margin-bottom: 1.5vh;
   text-align: center;
-  margin-top: 8px;
-}
-
-/* 7) Rechterhelft (jouw originele styling) */
-.rightHolder {
-  width: 50%;
-  background-color: #11152a;
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-end;
-  padding: 40px 80px;
-  background-image: url('../assets/vailStars.svg');
-  background-size: cover;
-  background-position: center;
-}
-
-.rightHolder h2 {
-  color: #ffffff;
-  font-size: 48px;
-  font-weight: 300;
-  line-height: 1.2;
-  text-align: right;
 }
 
 .error {
   color: #e33;
-  font-size: 14px;
-  margin-top: -8px;
+  font-size: 0.75rem;
   text-align: center;
+  margin-top: -0.4rem;
 }
 
-.loginBtn.disabled {
-  pointer-events: none;
-  opacity: 0.6;
+.rightHolder {
+  display: none;
+}
+
+@media only screen and (min-width: 1024px) {
+  .screen {
+    flex-direction: row;
+  }
+
+  .leftHolder {
+    width: 50%;
+    height: 100vh;
+    justify-content: center;
+    padding: 4vh 5vw;
+  }
+
+  .rightHolder {
+    display: flex;
+    width: 50%;
+    height: 100vh;
+    background: linear-gradient(180deg, #11152A 0%, #273166 50%, #11152A 100%);
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: 32px;
+    background-image: url('../assets/vailStars.svg');
+    background-size: cover;
+    background-position: center;
+  }
+
+  .rightHolder h2 {
+    color: #ffffff;
+    font-family: 'SUNROLL', serif;
+    font-size: clamp(1.8rem, 2vw, 2.5rem);
+    line-height: 1.3;
+  }
 }
 </style>

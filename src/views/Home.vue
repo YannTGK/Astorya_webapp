@@ -15,7 +15,7 @@
           </p>
           <div class="buttons">
             <router-link to="/login" class="loginBtn">Log in</router-link>
-            <router-link to="/guest" class="guestBtn">Continue as guest</router-link>
+            <router-link to="/sky" class="guestBtn">Continue as guest</router-link>
           </div>
         </div>
       </div>
@@ -24,7 +24,7 @@
     <!-- Rechterkant: sterrenhemel met quote -->
     <section class="rightSection">
       <canvas ref="starsCanvas" id="starsCanvas"></canvas>
-      <h1 class="starTitle">Write your story<br>in the stars with Astorya</h1>
+      <h1 class="starTitle">Write your StOry <br>in the Stars with AStOrya</h1>
     </section>
   </div>
 </template>
@@ -114,6 +114,7 @@ html, body {
   width: 100%;
   height: 100vh;
   overflow: hidden;
+  font-family: 'Alice', serif;
 }
 
 /* LEFT SIDE */
@@ -132,50 +133,50 @@ html, body {
   align-items: center;
   justify-content: space-between;
   height: 90vh;
-  min-height: 450px; /* voorkomt afsnijden bij zoom */
+  min-height: 400px;
   width: 100%;
   max-width: 480px;
-  padding: 3vh 5vw;
+  padding: 3vh 4vw;
   overflow: hidden;
 }
 
 .logo-img {
-  max-width: 120px;
+  max-width: 100px;
   height: auto;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .pAndB {
   display: flex;
   flex-direction: column;
-  gap: 1.5vh;
+  gap: 1.2vh;
   width: 100%;
 }
 
 .logo {
   font-family: 'SUNROLL', serif;
-  font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+  font-size: clamp(1.2rem, 2vw, 1.8rem);
   color: #11152A;
   text-align: left;
 }
 
 .leftText {
   font-family: 'Alice', serif;
-  font-size: clamp(0.75rem, 1.1vw, 1.1rem); /* kan nu kleiner worden */
+  font-size: clamp(0.7rem, 1vw, 1rem);
   color: #11152A;
   opacity: 0.8;
   text-align: justify;
   line-height: 1.4;
-  max-height: 30vh;
+  max-height: 28vh;
   overflow: hidden;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   overflow-wrap: break-word;
 }
 
 .buttons {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.8rem;
   width: 100%;
 }
 
@@ -183,13 +184,13 @@ html, body {
 .guestBtn {
   display: block;
   width: 100%;
-  padding: 0.9rem 0;
+  padding: 0.8rem 0;
   border-radius: 8px;
   text-decoration: none;
   font-family: 'Alice', serif;
   font-weight: bold;
   text-align: center;
-  font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+  font-size: clamp(0.85rem, 1.2vw, 1.1rem);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -216,7 +217,8 @@ html, body {
 /* TABLET */
 @media only screen and (min-width: 778px) {
   .leftHolder {
-    max-width: 600px;
+    max-width: 580px;
+    padding: 3vh 6vw;
   }
 }
 
@@ -255,7 +257,7 @@ html, body {
     display: block;
     position: relative;
     font-family: 'SUNROLL', serif;
-    font-size: clamp(2.2rem, 2vw, 2.9rem);
+    font-size: clamp(1.8rem, 1.8vw, 2.4rem);
     color: #ffffff;
     text-align: left;
     z-index: 1;
@@ -265,4 +267,3 @@ html, body {
   }
 }
 </style>
-
