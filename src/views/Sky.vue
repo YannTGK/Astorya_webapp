@@ -183,24 +183,24 @@ function logout() {
 }
 
 onMounted(() => {
-  if (!canvas.value) return
+  if (!canvas.value) return;
 
   // 1) Init scene + composer
-  ;({ renderer, scene, camera, composer } = initScene(canvas.value))
-  document.body.appendChild(VRButton.createButton(renderer))
+  ;({ renderer, scene, camera, composer } = initScene(canvas.value));
+  document.body.appendChild(VRButton.createButton(renderer));
 
-  // 2) Create a “world” group for stars & points
-  const world = new THREE.Group()
-  scene.add(world)
+  // 2) “World” group
+  const world = new THREE.Group();
+  scene.add(world);
 
-  // 3) Controllers + laser + spotlight (stay parented to scene)
-  const ctrlFactory = new XRControllerModelFactory()
+  // 3) Controllers + laser + spotlight
+  const ctrlFactory = new XRControllerModelFactory();
   for (let i = 0; i < 2; i++) {
-    const ctrl = renderer.xr.getController(i)
-    scene.add(ctrl)
-    const grip = renderer.xr.getControllerGrip(i)
-    grip.add(ctrlFactory.createControllerModel(grip))
-    scene.add(grip)
+    const ctrl = renderer.xr.getController(i);
+    scene.add(ctrl);
+    const grip = renderer.xr.getControllerGrip(i);
+    grip.add(ctrlFactory.createControllerModel(grip));
+    scene.add(grip);
 
     // Laser line
     const laser = new THREE.Line(
@@ -209,98 +209,135 @@ onMounted(() => {
         new THREE.Vector3(0, 0, -1),
       ]),
       new THREE.LineBasicMaterial({ color: 0xffffff })
-    )
-    laser.scale.set(1, 1, 10)
-    ctrl.add(laser)
+    );
+    laser.scale.set(1, 1, 10);
+    ctrl.add(laser);
 
     // Spotlight
-    const spot = new THREE.SpotLight(0xffffff, 1, 15, Math.PI * 0.1, 0.5)
-    spot.position.set(0, 0, 0)
-    spot.target.position.set(0, 0, -1)
-    ctrl.add(spot)
-    ctrl.add(spot.target)
+    const spot = new THREE.SpotLight(0xffffff, 1, 15, Math.PI * 0.1, 0.5);
+    spot.position.set(0, 0, 0);
+    spot.target.position.set(0, 0, -1);
+    ctrl.add(spot);
+    ctrl.add(spot.target);
   }
 
-  // 4) Background points in world
-  // 4) Achtergrond-sterren als kleine sphere-meshes i.p.v. Points
-    const starCount = 1000;
-    // 4a) Maak één bol-geometry en één materiaal
-    const starGeo = new THREE.SphereGeometry(0.5, 8, 8);
-    const starMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    // 4b) InstancedMesh aanmaken
-    const starsInst = new THREE.InstancedMesh(starGeo, starMat, starCount);
-    // 4c) Dummy-object om matrices in te vullen
-    const dummy = new THREE.Object3D();
-    for (let i = 0; i < starCount; i++) {
-      dummy.position.set(
-        (Math.random() - 0.5) * 2000,
-        (Math.random() - 0.5) * 2000,
-        (Math.random() - 0.5) * 2000
-      );
-      dummy.updateMatrix();
-      starsInst.setMatrixAt(i, dummy.matrix);
-    }
-    // 4d) Voeg toe aan je “world” group
-    world.add(starsInst);
+  // 4) Achtergrond-sterren als instanced spheres met eigen fases
+  const starCount = 1000;
+  const baseRadius = 0.5;
 
-  // 5) Stars in world
-  starMgr = useStarsManager(world, [])
-  watch(filteredStars, s => starMgr.update(s), { immediate: true })
+  // a) Geometry & materiaal
+  const starGeo = new THREE.SphereGeometry(1, 8, 8);
+  const starMat = new THREE.MeshStandardMaterial({
+    color:             0xffffff,
+    emissive:          0xffffff,
+    emissiveIntensity: 1,
+    roughness:         1,
+    metalness:         0,
+  });
+  const starsInst = new THREE.InstancedMesh(starGeo, starMat, starCount);
 
-  // 6) Render-loop: left stick → move/strafe, right stick → turn
-  const ROTATE_SPEED = 0.03
+  // b) Arrays om posities en fases in op te slaan
+  const positions = new Float32Array(starCount * 3);
+  const phases    = new Float32Array(starCount);
+
+  // c) Dummy-object voor matrix-updates
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < starCount; i++) {
+    // random positie
+    const x = (Math.random() - 0.5) * 2000;
+    const y = (Math.random() - 0.5) * 2000;
+    const z = (Math.random() - 0.5) * 2000;
+    positions[3 * i]     = x;
+    positions[3 * i + 1] = y;
+    positions[3 * i + 2] = z;
+    phases[i] = Math.random() * Math.PI * 2;
+
+    // init matrix met basis-scale
+    dummy.position.set(x, y, z);
+    dummy.scale.set(baseRadius, baseRadius, baseRadius);
+    dummy.updateMatrix();
+    starsInst.setMatrixAt(i, dummy.matrix);
+  }
+  world.add(starsInst);
+
+  // d) Clock voor animatie
+  const clock = new THREE.Clock();
+
+  // 5) Je sterren vanuit useStarsManager
+  starMgr = useStarsManager(world, []);
+  watch(filteredStars, s => starMgr.update(s), { immediate: true });
+
+  // 6) Render-loop met individuele pulsatie & movement
+  const ROTATE_SPEED = 0.03;
   renderer.setAnimationLoop(() => {
-    // a) baseline camera pose (for desktop fallback)
-    camera.position.copy(camPos.value)
-    camera.rotation.set(camRot.value.x, camRot.value.y, 0)
-    const forward = new THREE.Vector3(0, 0, -1).applyEuler(camera.rotation)
-    const right   = new THREE.Vector3(1, 0,  0).applyEuler(camera.rotation)
+    // camera / movement
+    camera.position.copy(camPos.value);
+    camera.rotation.set(camRot.value.x, camRot.value.y, 0);
+    const forward = new THREE.Vector3(0, 0, -1).applyEuler(camera.rotation);
+    const right   = new THREE.Vector3(1, 0,  0).applyEuler(camera.rotation);
 
-    // b) read both controllers
-    let dz = 0, dx = 0, turn = 0
-    const session = renderer.xr.getSession()
+    let dz = 0, dx = 0, turn = 0;
+    const session = renderer.xr.getSession();
     if (session) {
       for (const src of session.inputSources) {
-        if (!src.gamepad) continue
-        const axes = src.gamepad.axes
-        // choose the primary stick axes—if you get 4 values, use [2,3], else [0,1]
-        const x = axes.length >= 4 ? axes[2] : axes[0]
-        const y = axes.length >= 4 ? axes[3] : axes[1]
-
+        if (!src.gamepad) continue;
+        const axes = src.gamepad.axes;
+        const x = axes.length >= 4 ? axes[2] : axes[0];
+        const y = axes.length >= 4 ? axes[3] : axes[1];
         if (src.handedness === 'left') {
-          if (Math.abs(y) > 0.2) dz   = -y * SPEED   // forward/back
-          if (Math.abs(x) > 0.2) dx   = -x * SPEED   // strafe
-        } else if (src.handedness === 'right') {
-          if (Math.abs(x) > 0.2) turn =  x * ROTATE_SPEED
+          if (Math.abs(y) > 0.2) dz = -y * SPEED;
+          if (Math.abs(x) > 0.2) dx = -x * SPEED;
+        } else {
+          if (Math.abs(x) > 0.2) turn = x * ROTATE_SPEED;
         }
       }
     } else {
-      // desktop fallback: first gamepad
-      const gp = navigator.getGamepads?.()[0]
+      const gp = navigator.getGamepads?.()[0];
       if (gp) {
-        const axes = gp.axes
-        const x = axes.length >= 4 ? axes[2] : axes[0]
-        const y = axes.length >= 4 ? axes[3] : axes[1]
-        if (Math.abs(y) > 0.2) dz   = -y * SPEED
-        if (Math.abs(x) > 0.2) dx   = -x * SPEED
-        if (Math.abs(axes[0]) > 0.2) turn = axes[0] * ROTATE_SPEED
+        const axes = gp.axes;
+        const x = axes.length >= 4 ? axes[2] : axes[0];
+        const y = axes.length >= 4 ? axes[3] : axes[1];
+        if (Math.abs(y) > 0.2) dz = -y * SPEED;
+        if (Math.abs(x) > 0.2) dx = -x * SPEED;
+        if (Math.abs(axes[0]) > 0.2) turn = axes[0] * ROTATE_SPEED;
       }
     }
 
-    // c) apply movement
+    // toepassen beweging
     if (renderer.xr.isPresenting) {
-      world.position.addScaledVector(forward, dz)
-      world.position.addScaledVector(right,   dx)
-      world.rotation.y -= turn
-      renderer.render(scene, camera)
+      world.position.addScaledVector(forward, dz);
+      world.position.addScaledVector(right,   dx);
+      world.rotation.y -= turn;
     } else {
-      camPos.value.addScaledVector(forward, dz)
-      camPos.value.addScaledVector(right,   dx)
-      camRot.value.y -= turn
-      composer.render()
+      camPos.value.addScaledVector(forward, dz);
+      camPos.value.addScaledVector(right,   dx);
+      camRot.value.y -= turn;
     }
-  })
-})
+
+    // Puls-animatie per ster
+    const t = clock.getElapsedTime();
+    for (let i = 0; i < starCount; i++) {
+      const s = baseRadius * (1 + 0.3 * Math.sin(t * 2 + phases[i]));
+      dummy.position.set(
+        positions[3*i],
+        positions[3*i+1],
+        positions[3*i+2]
+      );
+      dummy.scale.set(s, s, s);
+      dummy.updateMatrix();
+      starsInst.setMatrixAt(i, dummy.matrix);
+    }
+    starsInst.instanceMatrix.needsUpdate = true;
+
+    // render
+    if (renderer.xr.isPresenting) {
+      renderer.render(scene, camera);
+    } else {
+      composer.render();
+    }
+  });
+});
+
 onUnmounted(() => {
   renderer.setAnimationLoop(null)
   starMgr.detach()
