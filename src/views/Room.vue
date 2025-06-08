@@ -216,8 +216,8 @@
   <style scoped>
   .wrap{position:relative;height:100vh;background:#fff;color:#fff}
   .back{position:absolute;top:20px;left:20px;background:none;border:none;color:#000;font-size:28px;z-index:20}
-  .tabs{position:absolute;bottom:20px;left:20px;background:#000;padding:16px 8px; border-radius: 70px;
-        display:flex;flex-direction:column;gap:24px;z-index:20}
+  .tabs{position:absolute;bottom:20px;left:20px;background:#000;padding:12px 4px; border-radius: 70px;
+        display:flex;flex-direction:column;gap:16px;z-index:20}
   .tabs button{border:none;border-radius: 100px; background:#000;color:#fff;}
   .tabs button.disabled{opacity:.35;pointer-events:none}
   
