@@ -10,6 +10,8 @@
         @focus="panelOpen = true"
       />
     </div>
+ 
+    
   </header>
 
   <!-- SLIDE-IN PANEL -->
@@ -82,6 +84,7 @@
   <Transition name="fade">
     <div v-if="noAccessMsg" class="access-label">{{ noAccessMsg }}</div>
   </Transition>
+  <button class="logout-btn" @click="logout">Logout</button>
   <button class="reset-btn" @click="resetView">↺</button>
   <div v-if="errorMsg" class="err">
     {{ errorMsg }} – <button @click="reload">retry</button>
@@ -101,6 +104,7 @@ import { useStars } from '../composables/useStars'
 import api from '../lib/axios'
 import { router } from '../router'
 import type { StarData } from '../types'
+import { useAuthStore } from '../stores/auth'
 
 // UI state & filters
 const panelOpen  = ref(false)
@@ -111,6 +115,7 @@ const dod        = ref('')
 const country    = ref('')
 const coord      = ref('')
 const togglePanel = () => (panelOpen.value = !panelOpen.value)
+const auth = useAuthStore()
 
 const { stars, loading, errorMsg, reload } = useStars()
 const near = (v: number, t: number, m = 2) => Math.abs(v - t) <= m
@@ -167,6 +172,15 @@ let renderer: THREE.WebGLRenderer,
 
 const raycaster = new THREE.Raycaster()
 const mouse     = new THREE.Vector2()
+
+
+// Logout handler
+function logout() {
+  // dit wist je token + user uit Pinia en localStorage
+  auth.logout()
+  // en stuur je terug naar de login-screen
+  router.push({ name: 'Login' })
+}
 
 onMounted(() => {
   if (!canvas.value) return
@@ -390,6 +404,7 @@ async function handleClick(e: PointerEvent) {
   }
   focusStar(star)
 }
+
 
 // WASD fallback
 const mv = { f:0,b:0,l:0,r:0 }
@@ -661,4 +676,18 @@ requestAnimationFrame(function step(){
   .topbar { position: fixed; top:24px; left:20px; display:flex; gap:8px; z-index:30; }
 .compact-input{ width:160px; padding:6px 10px; border-radius:20px; border:none; }
 .sky-canvas{ position: fixed; inset:0; display:block; cursor: grab; touch-action: none; }
+.logout-btn {
+  position: absolute;
+  right: 24px;
+  top: 24px;
+  margin-left: auto;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 20px;
+  background: #fedf7e;
+  color: #111;
+  font-weight: 600;
+  cursor: pointer;
+}
+  
   </style>
