@@ -4,17 +4,24 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js'
+import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js'
 
 export function initScene(canvas: HTMLCanvasElement) {
+  // Renderer
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
   renderer.setSize(window.innerWidth, window.innerHeight)
-  renderer.setPixelRatio(devicePixelRatio)
-  renderer.xr.enabled = true
+  renderer.setPixelRatio(window.devicePixelRatio)
+  renderer.xr.enabled = true                                 // ← WebXR aan
 
+  // Voeg de “Enter VR” knop toe
+  document.body.appendChild(VRButton.createButton(renderer))
+
+  // Scene & Fog
   const scene = new THREE.Scene()
   scene.background = new THREE.Color(0x000000)
   scene.fog = new THREE.Fog(0x000000, 200, 1200)
 
+  // Camera
   const camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
@@ -23,29 +30,36 @@ export function initScene(canvas: HTMLCanvasElement) {
   )
   camera.position.set(0, 0, 10)
 
-  // ---------- bloom ----------
+  // Post-processing (bloom)
   const composer = new EffectComposer(renderer)
   composer.addPass(new RenderPass(scene, camera))
   composer.addPass(
     new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
-      3,
-      1,
-      0
+      3, 1, 0
     )
   )
 
-  // ---------- resize ----------
-  window.addEventListener('resize', () => {
-    const { innerWidth, innerHeight } = window
-    renderer.setSize(innerWidth, innerHeight)
-    camera.aspect = innerWidth / innerHeight
-    camera.updateProjectionMatrix()
-    composer.setSize(innerWidth, innerHeight)
-  })
+  // Controllers (optioneel)
+  const controllerModelFactory = new XRControllerModelFactory()
+  const ctrlGrip = (i: number) => {
+    const ctrl = renderer.xr.getController(i)
+    scene.add(ctrl)
+    const grip = renderer.xr.getControllerGrip(i)
+    grip.add(controllerModelFactory.createControllerModel(grip))
+    scene.add(grip)
+  }
+  ctrlGrip(0)
+  ctrlGrip(1)
 
-  // ---------- VR button ----------
-  document.body.appendChild(VRButton.createButton(renderer))
+  // Resize-handler
+  window.addEventListener('resize', () => {
+    const w = window.innerWidth, h = window.innerHeight
+    renderer.setSize(w, h)
+    camera.aspect = w / h
+    camera.updateProjectionMatrix()
+    composer.setSize(w, h)
+  })
 
   return { renderer, scene, camera, composer }
 }

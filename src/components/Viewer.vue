@@ -6,9 +6,9 @@
       <p     v-else class="txt">{{ items[index].message }}</p>
   
       <div class="nav">
-        <button @click="$emit('update:index', Math.max(index - 1, 0))" :disabled="index === 0">◀</button>
+        <button @click="$emit('update:index', Math.max(index - 1, 0))" :disabled="index === 0"><img src="../assets/icons/arrowLeft.svg" alt="go back"></button>
         <button @click="$emit('update:index', Math.min(index + 1, items.length - 1))"
-                :disabled="index === items.length - 1">▶</button>
+                :disabled="index === items.length - 1"><img src="../assets/icons/arrowRight.svg" alt=""></button>
       </div>
     </div>
   </template>
@@ -28,7 +28,7 @@
   </script>
   
   <style scoped>
-  .viewer { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center }
+  .viewer { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 80%;padding-left: 160px; }
   .media  { max-width: 100%; max-height: 70vh; margin-bottom: 16px }
   .txt    { font-size: 20px; margin: 0 24px; white-space: pre-wrap; text-align: center }
   .nav    { display: flex; justify-content: space-between; width: 100% }

@@ -49,9 +49,9 @@
             <div v-if="docs?.length" class="docBox">
               <h3>{{ docs[docIdx].originalName }}</h3>
               <div class="nav">
-                <button @click="docIdx--" :disabled="docIdx === 0">◀</button>
+                <button @click="docIdx--" :disabled="docIdx === 0"><img src="../assets/icons/arrowLeft.svg" alt="back button"></button>
                 <button class="open" @click="openDoc(docs[docIdx].url)">Open PDF</button>
-                <button @click="docIdx++" :disabled="docIdx === docs.length - 1">▶</button>
+                <button @click="docIdx++" :disabled="docIdx === docs.length - 1"><img src="../assets/icons/arrowRight.svg" alt="next button"></button>
               </div>
             </div>
             <p v-else class="info">No documents available.</p>
@@ -214,12 +214,11 @@
   </script>
   
   <style scoped>
-  .wrap{position:relative;height:100vh;background:#000;color:#fff}
-  .back{position:absolute;top:20px;left:20px;background:none;border:none;color:#fff;font-size:28px;z-index:20}
-  .tabs{position:absolute;bottom:200px;left:20px;background:#000c;padding:12px;border-radius:50%;
-        display:flex;flex-direction:column;gap:18px;z-index:20}
-  .tabs button{width:48px;height:48px;border:none;border-radius:50%;background:#222;color:#fff;font-size:24px}
-  .tabs button.active{background:#fedf7e;color:#111}
+  .wrap{position:relative;height:100vh;background:#fff;color:#fff}
+  .back{position:absolute;top:20px;left:20px;background:none;border:none;color:#000;font-size:28px;z-index:20}
+  .tabs{position:absolute;bottom:200px;left:20px;background:#000;padding:20px 12px; border-radius: 32px;
+        display:flex;flex-direction:column;gap:24px;z-index:20}
+  .tabs button{border:none;border-radius: 100px; background:#000;color:#fff;}
   .tabs button.disabled{opacity:.35;pointer-events:none}
   
   .fade-enter-active,.fade-leave-active{transition:opacity .25s}
