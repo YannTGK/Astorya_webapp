@@ -189,6 +189,40 @@ onMounted(() => {
   ;({ renderer, scene, camera, composer } = initScene(canvas.value));
   document.body.appendChild(VRButton.createButton(renderer));
 
+  // ======= GALAXY GRADIENT ACHTERGROND =======
+const galaxyGeo = new THREE.PlaneGeometry(5000, 5000);
+const galaxyMat = new THREE.ShaderMaterial({
+  uniforms: {
+    colorCenter: { value: new THREE.Color('#101427') }, // diep blauw
+    colorEdge:   { value: new THREE.Color('#000000') }, // zwart
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform vec3 colorCenter;
+    uniform vec3 colorEdge;
+    varying vec2 vUv;
+    void main() {
+      float distToCenter = distance(vUv, vec2(0.5, 0.5));
+      float verticalBlend = smoothstep(0.2, 0.8, vUv.y);
+      float radial = smoothstep(0.0, 0.8, distToCenter);
+      float blend = mix(verticalBlend, radial, 0.6);
+      vec3 color = mix(colorCenter, colorEdge, blend);
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `,
+  side: THREE.DoubleSide,
+  depthWrite: false,
+});
+const galaxyPlane = new THREE.Mesh(galaxyGeo, galaxyMat);
+galaxyPlane.position.set(0, 0, -1000);
+scene.add(galaxyPlane);
+
   // 2) “World” group
   const world = new THREE.Group();
   scene.add(world);
