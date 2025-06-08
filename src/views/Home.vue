@@ -132,14 +132,17 @@ html, body {
   align-items: center;
   justify-content: space-between;
   height: 90vh;
+  min-height: 450px; /* voorkomt afsnijden bij zoom */
   width: 100%;
   max-width: 480px;
   padding: 3vh 5vw;
+  overflow: hidden;
 }
 
 .logo-img {
   max-width: 120px;
   height: auto;
+  margin-bottom: 12px;
 }
 
 .pAndB {
@@ -158,7 +161,7 @@ html, body {
 
 .leftText {
   font-family: 'Alice', serif;
-  font-size: clamp(0.9rem, 1.1vw, 1.1rem);
+  font-size: clamp(0.75rem, 1.1vw, 1.1rem); /* kan nu kleiner worden */
   color: #11152A;
   opacity: 0.8;
   text-align: justify;
@@ -166,6 +169,7 @@ html, body {
   max-height: 30vh;
   overflow: hidden;
   margin-bottom: 12px;
+  overflow-wrap: break-word;
 }
 
 .buttons {
@@ -185,7 +189,7 @@ html, body {
   font-family: 'Alice', serif;
   font-weight: bold;
   text-align: center;
-  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  font-size: clamp(0.9rem, 1.5vw, 1.2rem);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -261,3 +265,4 @@ html, body {
   }
 }
 </style>
+
